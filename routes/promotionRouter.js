@@ -1,6 +1,7 @@
 const express = require('express');
 const Promotion = require('../models/promotion');
 const authenticate = require('../authenticate');
+const cors = require('./cors');
 
 
 //define all the routers
@@ -8,7 +9,8 @@ const promotionRouter = express.Router();
 
 // base route
 promotionRouter.route('/')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req, res, next) => {
     Promotion.find()
     .then(promotions => {
         res.statusCode = 200;
@@ -43,7 +45,8 @@ promotionRouter.route('/')
 
 // promotionID route
 promotionRouter.route('/:promotionId')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req, res, next) => {
     Promotion.findById(req.params.promotionId)
     .then(promotion => {
         res.statusCode = 200;
@@ -78,7 +81,8 @@ promotionRouter.route('/:promotionId')
 });
 
 promotionRouter.route('/:promotionId/comments')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req, res, next) => {
     Promotion.findById(req.params.promotionId)
     .then(promotion => {
         if (promotion) {
