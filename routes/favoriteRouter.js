@@ -3,6 +3,7 @@ const Favorite = require('../models/favorite');
 const authenticate = require('../authenticate');
 const cors = require('./cors');
 const favorite = require('../models/favorite');
+const Campsite = require('../models/campsite');
 
 const favoriteRouter = express.Router();
 
@@ -19,7 +20,7 @@ favoriteRouter.route('/')
     })
     .catch(err => next(err));
 })
-.post(cors.corsWithOptions, authenticate.verifyUser, (req, res) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     
     favorite.findOne({user: req.user._id})
         .then(favorite => {
@@ -34,6 +35,22 @@ favoriteRouter.route('/')
                     res.statusCode = 200;
                     res.setHeader('Content-Type', 'application/json');
                     res.json(favorite);
+                })
+            }else{
+                Favorite.create({user: req.user._id})
+                .then(favorite => {
+                    console.log("favorite:", favorite);
+                    req.body.forEach( (fav) => {
+                        if(!favorite.campsites.includes(fav._id)){
+                            favorite.campsites.push(fav._id);
+                        }
+                    })
+                    favorite.save()
+                    .then(favorite => {
+                        res.statusCode = 200;
+                        res.setHeader('Content-Type', 'application/json');
+                        res.json(favorite);
+                    })
                 })
             }
         }).catch(err => next(err));
@@ -86,7 +103,7 @@ favoriteRouter.route('/:campsiteId')
                 res.end('You do not have any favorites to delete.');
             }
     }else{
-        favorite.create({user: req.user._id, campsites: [req.params.campsiteId]})
+        Favorite.create({user: req.user._id, campsites: [req.params.campsiteId]})
         .then(favorite => {
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
